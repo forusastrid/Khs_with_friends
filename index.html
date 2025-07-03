@@ -24,7 +24,7 @@
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
             padding: 40px;
             width: 100%;
-            max-width: 700px; 
+            max-width: 700px;
             text-align: center;
             border: 1px solid rgba(226, 232, 240, 0.6);
             backdrop-filter: blur(5px);
@@ -47,27 +47,24 @@
         .camera-section {
             margin-bottom: 35px;
             text-align: center;
+            position: relative; /* For positioning the draggable obstacle */
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 12px;
+            overflow: hidden; /* Ensure obstacle stays within video bounds */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         #cameraFeed {
             width: 100%;
-            max-width: 500px;
-            height: 280px; 
+            height: 300px; /* Fixed height for video */
             background-color: #e2e8f0;
-            border-radius: 12px;
-            margin: 0 auto 20px;
             display: block;
-            object-fit: cover; 
+            object-fit: cover;
             border: 2px solid #cbd5e0;
-            box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.1);
         }
-        .control-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .control-buttons button {
+        #startCameraButton {
             background-color: #4f46e5;
             color: white;
             padding: 12px 25px;
@@ -78,16 +75,45 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
             box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            margin-top: 20px;
         }
-        .control-buttons button:hover {
+        #startCameraButton:hover {
             background-color: #6366f1;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
         }
-        .control-buttons button:active {
+        #startCameraButton:active {
             transform: translateY(0);
             box-shadow: 0 2px 10px rgba(79, 70, 229, 0.2);
         }
+
+        #obstacle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(239, 68, 68, 0.7); /* Red with transparency */
+            border-radius: 50%;
+            border: 3px solid #dc2626; /* Darker red border */
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            transition: box-shadow 0.2s ease-in-out;
+            left: 50%; /* Start in the middle */
+            transform: translate(-50%, -50%); /* Center it */
+            top: 70%; /* Initial position (further away) */
+            z-index: 10;
+        }
+        #obstacle:active {
+            cursor: grabbing;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6);
+        }
+
 
         .output-container {
             background: linear-gradient(145deg, #eef2f7 0%, #e0e5ed 100%);
@@ -154,19 +180,12 @@
 <body>
     <div class="container">
         <h1>스마트 비전 시뮬레이션</h1>
-        <p>웹캠을 통해 주변 환경을 보면서, 가상의 장애물 거리를 설정하여 청각 및 촉각 피드백의 변화를 경험해보세요.</p>
+        <p>카메라 화면에서 빨간색 원을 드래그하여 장애물과의 거리를 시뮬레이션하고, 청각 및 촉각 피드백의 변화를 경험해보세요.</p>
 
         <div class="camera-section">
             <video id="cameraFeed" autoplay playsinline></video>
-            <button id="startCameraButton" class="mt-4">카메라 시작</button>
-        </div>
-
-        <div class="control-buttons">
-            <button data-distance="0.5">장애물: 0.5m (매우 근접)</button>
-            <button data-distance="2">장애물: 2m (근접)</button>
-            <button data-distance="4">장애물: 4m (중간)</button>
-            <button data-distance="6">장애물: 6m (멀리)</button>
-            <button data-distance="10">장애물 없음 (안전)</button>
+            <div id="obstacle">장애물</div>
+            <button id="startCameraButton">카메라 시작</button>
         </div>
 
         <div class="output-container">
@@ -195,7 +214,9 @@
     <script>
         const cameraFeed = document.getElementById('cameraFeed');
         const startCameraButton = document.getElementById('startCameraButton');
-        const controlButtons = document.querySelector('.control-buttons');
+        const obstacle = document.getElementById('obstacle');
+        const cameraSection = document.querySelector('.camera-section'); // Parent for obstacle positioning
+
         const currentDistanceSpan = document.getElementById('currentDistance');
         const vibrationIntensity = document.getElementById('vibrationIntensity');
         const vibrationIndicator = document.getElementById('vibrationIndicator');
@@ -205,7 +226,8 @@
 
         let audioCtx;
         let oscillator;
-        let currentStream; // To store the camera stream
+        let currentStream;
+        let isDragging = false;
 
         function initAudio() {
             if (!audioCtx) {
@@ -223,19 +245,34 @@
 
         async function startCamera() {
             try {
-                // Request access to the user's camera
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 cameraFeed.srcObject = stream;
                 currentStream = stream;
                 cameraFeed.play();
-                startCameraButton.textContent = '카메라 실행 중...';
-                startCameraButton.disabled = true;
-                initAudio(); // Initialize audio context once camera is started
+                startCameraButton.style.display = 'none'; // Hide button after starting
+                obstacle.style.display = 'flex'; // Show obstacle
+                initAudio();
+                updateFeedback(mapObstaclePositionToDistance(obstacle.offsetTop + obstacle.offsetHeight / 2)); // Initial update
             } catch (err) {
                 console.error('카메라 접근 오류:', err);
                 alert('카메라를 시작할 수 없습니다. 권한을 허용했는지 확인해주세요.');
                 startCameraButton.textContent = '카메라 시작 실패';
             }
+        }
+
+        // Map obstacle's vertical position to a simulated distance
+        function mapObstaclePositionToDistance(yPos) {
+            const videoHeight = cameraFeed.offsetHeight;
+            // Map yPos from top (0) to bottom (videoHeight) to distance (0m to 10m)
+            // Closer to bottom (higher yPos) means further distance (larger value)
+            // Closer to top (lower yPos) means closer distance (smaller value)
+            const normalizedY = yPos / videoHeight; // 0 to 1
+            // Invert and scale: 1 - normalizedY gives 1 at top, 0 at bottom
+            // Scale to 10m: (1 - normalizedY) * 10
+            // Add a small offset to ensure it's not exactly 0 or 10
+            let distance = (1 - normalizedY) * 10;
+            distance = Math.max(0.1, Math.min(10, distance)); // Clamp between 0.1 and 10
+            return distance;
         }
 
         function updateFeedback(distance) {
@@ -334,16 +371,68 @@
             dangerWarning.style.color = warningColor;
         }
 
-        // Event Listeners
-        startCameraButton.addEventListener('click', startCamera);
-
-        controlButtons.addEventListener('click', (event) => {
-            if (event.target.tagName === 'BUTTON' && event.target.dataset.distance) {
-                const simulatedDistance = parseFloat(event.target.dataset.distance);
-                updateFeedback(simulatedDistance);
-            }
+        // Obstacle dragging logic
+        obstacle.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            obstacle.style.cursor = 'grabbing';
         });
-        updateFeedback(10);
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            obstacle.style.cursor = 'grab';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const cameraRect = cameraFeed.getBoundingClientRect();
+            let newY = e.clientY - cameraRect.top; // Y position relative to video top
+
+            // Clamp newY within video bounds
+            newY = Math.max(obstacle.offsetHeight / 2, Math.min(cameraRect.height - obstacle.offsetHeight / 2, newY));
+
+            obstacle.style.top = `${newY}px`;
+            obstacle.style.left = '50%'; // Keep it centered horizontally
+
+            const simulatedDistance = mapObstaclePositionToDistance(newY);
+            updateFeedback(simulatedDistance);
+        });
+
+        // Touch events for mobile
+        obstacle.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            obstacle.style.cursor = 'grabbing';
+            e.preventDefault(); // Prevent scrolling
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+            obstacle.style.cursor = 'grab';
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging || !e.touches[0]) return;
+
+            const cameraRect = cameraFeed.getBoundingClientRect();
+            let newY = e.touches[0].clientY - cameraRect.top;
+
+            newY = Math.max(obstacle.offsetHeight / 2, Math.min(cameraRect.height - obstacle.offsetHeight / 2, newY));
+
+            obstacle.style.top = `${newY}px`;
+            obstacle.style.left = '50%';
+
+            const simulatedDistance = mapObstaclePositionToDistance(newY);
+            updateFeedback(simulatedDistance);
+            e.preventDefault(); // Prevent scrolling
+        });
+
+
+        // Initial state
+        obstacle.style.display = 'none'; // Hide obstacle until camera starts
+        updateFeedback(10); // Start with safe distance
+
+        // Event Listener for starting camera
+        startCameraButton.addEventListener('click', startCamera);
     </script>
 </body>
 </html>
