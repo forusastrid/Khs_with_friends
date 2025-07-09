@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>천안월봉고등학교 수질 대시보드</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <header>
+    <h1>천안월봉고등학교 수질 대시보드</h1>
+  <div id="color-legend" aria-label="수질 색상 기준" role="region">
+    <strong>수질 상태 기준: </strong>
+    <span class="legend-box good"></span> 좋음
+    <span class="legend-box average"></span> 보통
+    <span class="legend-box bad"></span> 나쁨
+  </div>
+  </header>
+  
+
+  <main>
+    <section class="floor" id="floor-1" aria-labelledby="floor1-title">
+      <h2 id="floor1-title">1층</h2>
+      <div class="location" data-ph="7.2" data-tds="150" tabindex="0" role="button" aria-pressed="false" aria-label="급식실 음수대, PH 7.2, TDS 150">급식실 음수대</div>
+      <div class="location" data-ph="6.8" data-tds="300" tabindex="0" role="button" aria-pressed="false" aria-label="장애인 화장실, PH 6.8, TDS 300">장애인 화장실</div>
+    </section>
+
+    <section class="floor" id="floor-2" aria-labelledby="floor2-title">
+      <h2 id="floor2-title">2층</h2>
+      <div class="location" data-ph="5.5" data-tds="500" tabindex="0" role="button" aria-pressed="false" aria-label="체육관 화장실, PH 5.5, TDS 500">체육관 화장실</div>
+      <div class="location" data-ph="7.0" data-tds="200" tabindex="0" role="button" aria-pressed="false" aria-label="전동 음수대, PH 7.0, TDS 200">전동 음수대</div>
+      <div class="location" data-ph="6.9" data-tds="350" tabindex="0" role="button" aria-pressed="false" aria-label="후동 음수대, PH 6.9, TDS 350">후동 음수대</div>
+      <div class="location" data-ph="7.1" data-tds="180" tabindex="0" role="button" aria-pressed="false" aria-label="전동 화장실, PH 7.1, TDS 180">전동 화장실</div>
+      <div class="location" data-ph="6.7" data-tds="400" tabindex="0" role="button" aria-pressed="false" aria-label="중앙 화장실, PH 6.7, TDS 400">중앙 화장실</div>
+      <div class="location" data-ph="5.8" data-tds="450" tabindex="0" role="button" aria-pressed="false" aria-label="후동 화장실, PH 5.8, TDS 450">후동 화장실</div>
+    </section>
+
+    <section class="floor" id="floor-3" aria-labelledby="floor3-title">
+      <h2 id="floor3-title">3층</h2>
+      <div class="location" data-ph="7.0" data-tds="190" tabindex="0" role="button" aria-pressed="false" aria-label="전동 음수대, PH 7.0, TDS 190">전동 음수대</div>
+      <div class="location" data-ph="6.8" data-tds="310" tabindex="0" role="button" aria-pressed="false" aria-label="후동 음수대, PH 6.8, TDS 310">후동 음수대</div>
+      <div class="location" data-ph="7.2" data-tds="170" tabindex="0" role="button" aria-pressed="false" aria-label="전동 화장실, PH 7.2, TDS 170">전동 화장실</div>
+      <div class="location" data-ph="6.6" data-tds="390" tabindex="0" role="button" aria-pressed="false" aria-label="중앙 화장실, PH 6.6, TDS 390">중앙 화장실</div>
+      <div class="location" data-ph="5.9" data-tds="460" tabindex="0" role="button" aria-pressed="false" aria-label="후동 화장실, PH 5.9, TDS 460">후동 화장실</div>
+    </section>
+
+    <section class="floor" id="floor-4" aria-labelledby="floor4-title">
+      <h2 id="floor4-title">4층</h2>
+      <div class="location" data-ph="7.1" data-tds="185" tabindex="0" role="button" aria-pressed="false" aria-label="전동 음수대, PH 7.1, TDS 185">전동 음수대</div>
+      <div class="location" data-ph="6.9" data-tds="340" tabindex="0" role="button" aria-pressed="false" aria-label="후동 음수대, PH 6.9, TDS 340">후동 음수대</div>
+      <div class="location" data-ph="7.0" data-tds="175" tabindex="0" role="button" aria-pressed="false" aria-label="전동 화장실, PH 7.0, TDS 175">전동 화장실</div>
+      <div class="location" data-ph="6.7" data-tds="405" tabindex="0" role="button" aria-pressed="false" aria-label="중앙 화장실, PH 6.7, TDS 405">중앙 화장실</div>
+      <div class="location" data-ph="5.7" data-tds="455" tabindex="0" role="button" aria-pressed="false" aria-label="후동 화장실, PH 5.7, TDS 455">후동 화장실</div>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true"></div>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close" aria-label="닫기">&times;</button>
+      <h3 id="modal-title"></h3>
+      <p id="modal-desc" class="sr-only">이 차트는 선택된 위치의 수질 정보를 그래프로 보여줍니다.</p>
+      <canvas id="chart" width="400" height="250" aria-label="수질 그래프"></canvas>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 희성이와 아이들. 모든 권리 보유.</p>
+    <p>문의: koreansong63@gmail.com | 전화: 010-5639-2695</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
