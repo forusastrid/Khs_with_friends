@@ -3,8 +3,6 @@ const tooltip = document.getElementById('tooltip');
 const warningBanner = document.getElementById('warning-banner');
 const badLocationsList = document.getElementById('bad-locations-list');
 const csvUpload = document.getElementById('csv-upload');
-
-// 모달 & 차트 관련
 const modal = document.getElementById('modal');
 const modalTitle = document.getElementById('modal-title');
 const modalClose = document.getElementById('modal-close');
@@ -50,7 +48,6 @@ function updateAllLocations() {
   }
 }
 
-// 툴팁 위치와 내용 표시 함수
 function showTooltip(e) {
   const target = e.target;
   const ph = target.getAttribute('data-ph');
@@ -88,9 +85,10 @@ function hideTooltip() {
   }, 200);
 }
 
-// 모달 열기 함수
 function openModal(placeName) {
   modalTitle.textContent = `${placeName} 과거 수질 변화`;
+
+  modal.classList.remove('hidden');
 
   const data = pastDataExample[placeName];
 
@@ -105,94 +103,98 @@ function openModal(placeName) {
   } else {
     if (chartInstance) chartInstance.destroy();
 
-    chartInstance = new Chart(chartCtx, {
-      type: 'line',
-      data: {
-        labels: data.dates,
-        datasets: [
-          {
-            label: 'pH',
-            data: data.ph,
-            borderColor: '#0066cc',
-            backgroundColor: 'rgba(0,102,204,0.15)',
-            yAxisID: 'y1',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            borderWidth: 3,
-          },
-          {
-            label: 'TDS',
-            data: data.tds,
-            borderColor: '#004080',
-            backgroundColor: 'rgba(0,64,128,0.15)',
-            yAxisID: 'y2',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            borderWidth: 3,
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
+    setTimeout(() => {
+      chartInstance = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+          labels: data.dates,
+          datasets: [
+            {
+              label: 'pH',
+              data: data.ph,
+              borderColor: '#0066cc',
+              backgroundColor: 'rgba(0,102,204,0.15)',
+              yAxisID: 'y1',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              borderWidth: 3,
+            },
+            {
+              label: 'TDS',
+              data: data.tds,
+              borderColor: '#004080',
+              backgroundColor: 'rgba(0,64,128,0.15)',
+              yAxisID: 'y2',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              borderWidth: 3,
+            }
+          ]
         },
-        stacked: false,
-        scales: {
-          y1: {
-            type: 'linear',
-            position: 'left',
-            title: {
-              display: true,
-              text: 'pH',
-              color: '#0066cc',
-              font: { weight: 'bold' }
-            },
-            min: 0,
-            max: 14,
-            grid: { color: 'rgba(0,102,204,0.1)' },
-            ticks: { color: '#004080' }
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false,
           },
-          y2: {
-            type: 'linear',
-            position: 'right',
-            title: {
-              display: true,
-              text: 'TDS',
-              color: '#004080',
-              font: { weight: 'bold' }
+          stacked: false,
+          scales: {
+            y1: {
+              type: 'linear',
+              position: 'left',
+              title: {
+                display: true,
+                text: 'pH',
+                color: '#0066cc',
+                font: { weight: 'bold' }
+              },
+              min: 0,
+              max: 14,
+              grid: { color: 'rgba(0,102,204,0.1)' },
+              ticks: { color: '#004080' }
             },
-            min: 0,
-            max: 1000,
-            grid: {
-              drawOnChartArea: false,
-              color: 'rgba(0,64,128,0.1)'
-            },
-            ticks: { color: '#003366' }
-          }
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: '#003366',
-              font: { weight: 'bold' }
+            y2: {
+              type: 'linear',
+              position: 'right',
+              title: {
+                display: true,
+                text: 'TDS',
+                color: '#004080',
+                font: { weight: 'bold' }
+              },
+              min: 0,
+              max: 1000,
+              grid: {
+                drawOnChartArea: false,
+                color: 'rgba(0,64,128,0.1)'
+              },
+              ticks: { color: '#003366' }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#003366',
+                font: { weight: 'bold' }
+              }
             }
           }
         }
-      }
-    });
+      });
+    }, 0);
   }
-  modal.classList.remove('hidden');
 }
 
-// 모달 닫기
 function closeModal() {
   modal.classList.add('hidden');
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
 }
 
 locations.forEach(location => {
@@ -211,25 +213,101 @@ window.addEventListener('click', (e) => {
   if (e.target === modal) closeModal();
 });
 
-// 예시 과거 데이터
 const pastDataExample = {
   "급식실 음수대": {
-    dates: ["2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-05"],
-    ph: [7.1, 7.0, 7.3, 7.2, 7.2],
-    tds: [140, 150, 145, 148, 150]
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.44, 6.46, 6.45, 6.43, 6.47],
+    tds: [195, 197, 198, 196, 197]
   },
-  "체육관 화장실": {
-    dates: ["2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-05"],
-    ph: [5.6, 5.7, 5.5, 5.4, 5.5],
-    tds: [490, 500, 505, 495, 500]
+  ".체육관 화장실.": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.8, 6.81, 6.79, 6.78, 6.8],
+    tds: [196, 198, 197, 197, 197]
   },
-  // 필요 시 추가 가능
+  ".전동 음수대.": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.78, 6.79, 6.8, 6.79, 6.78],
+    tds: [96, 97, 96, 98, 97]
+  },
+  ".후동 음수대.": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.59, 6.6, 6.6, 6.61, 6.6],
+    tds: [93, 94, 94, 95, 94]
+  },
+  "'전동 음수대'": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.65, 6.66, 6.67, 6.66, 6.66],
+    tds: [94, 95, 96, 95, 95]
+  },
+  "'후동 음수대'": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.6, 6.61, 6.62, 6.6, 6.61],
+    tds: [193, 194, 195, 194, 194]
+  },
+  "전동 음수대": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.61, 6.62, 6.63, 6.62, 6.62],
+    tds: [95, 96, 97, 96, 96]
+  },
+  "후동 음수대": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.55, 6.56, 6.57, 6.56, 6.56],
+    tds: [93, 94, 94, 95, 94]
+  },
+  "장애인 화장실": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.63, 6.64, 6.65, 6.64, 6.64],
+    tds: [93, 94, 95, 94, 94]
+  },
+  ".전동 화장실.": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [7.34, 7.35, 7.36, 7.35, 7.35],
+    tds: [90, 91, 92, 91, 91]
+  },
+  ".중앙 화장실.": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.78, 6.79, 6.8, 6.79, 6.78],
+    tds: [96, 97, 97, 96, 97]
+  },
+  ".후동 화장실.": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [7.34, 7.35, 7.36, 7.35, 7.35],
+    tds: [95, 96, 97, 96, 96]
+  },
+  "'전동 화장실'": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [7.47, 7.48, 7.49, 7.48, 7.48],
+    tds: [93, 94, 94, 95, 94]
+  },
+  "'중앙 화장실'": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [6.74, 6.75, 6.76, 6.75, 6.75],
+    tds: [93, 94, 95, 94, 94]
+  },
+  "'후동 화장실'": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [8.6, 8.61, 8.62, 8.61, 8.6],
+    tds: [96, 97, 98, 97, 97]
+  },
+  "전동 화장실": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [7.74, 7.75, 7.76, 7.75, 7.75],
+    tds: [94, 95, 96, 95, 95]
+  },
+  "중앙 화장실": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [8.31, 8.32, 8.33, 8.32, 8.32],
+    tds: [94, 95, 96, 95, 95]
+  },
+  "후동 화장실": {
+    dates: ["2025-07-06", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10"],
+    ph: [7.67, 7.68, 7.69, 7.68, 7.68],
+    tds: [152, 153, 154, 153, 153]
+  }
 };
 
-// 초기 상태 업데이트
 updateAllLocations();
 
-// CSV 업로드 (간단 구현, 실제 서버 연동 필요 시 추가 구현)
 csvUpload.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -242,7 +320,6 @@ csvUpload.addEventListener('change', e => {
   reader.readAsText(file);
 });
 
-// CSV 데이터 처리 (위치명, 층, PH, TDS)
 function processCSV(csvText) {
   const lines = csvText.trim().split('\n');
   lines.forEach(line => {
@@ -252,7 +329,6 @@ function processCSV(csvText) {
     const ph = parseFloat(phStr);
     const tds = parseFloat(tdsStr);
 
-    // 페이지 내 해당 위치 요소 찾기
     const locElem = [...locations].find(loc => loc.textContent.trim() === locationName);
     if (locElem) {
       locElem.setAttribute('data-ph', ph);
