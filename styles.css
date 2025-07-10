@@ -335,7 +335,7 @@ footer p {
 
 @media (max-width: 600px) {
     h1 {
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       margin: 30px 0 15px;
     }
   
@@ -413,4 +413,8 @@ footer p {
     }
   }
 
-  
+  #legend-desc ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
